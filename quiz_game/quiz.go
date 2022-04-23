@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -9,17 +10,19 @@ import (
 	"strings"
 )
 
-type CsvLine struct {
+type Problem struct {
 	Question string
 	Answer   string
 }
 
 func main() {
-	lines, err := ReadCsv("problems.csv")
+	csv_filename := flag.String("csv", "problems.csv", "A csv file containing the problems. Format: question, answer")
+	flag.Parse()
+
+	lines, err := ReadCsv(*csv_filename)
 
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		exit((fmt.Sprintf("Failed to open %s\n", *csv_filename)), err)
 	}
 
 	correct := 0
@@ -28,7 +31,7 @@ func main() {
 	var input string
 
 	for index, line := range lines {
-		data := CsvLine{
+		data := Problem{
 			Question: line[0],
 			Answer:   line[1],
 		}
@@ -36,7 +39,7 @@ func main() {
 
 		_, err = fmt.Scanln(&input)
 		if err != nil {
-			log.Fatal(err)
+			exit("Could not get input\n", err)
 		}
 
 		if runtime.GOOS == "windows" {
@@ -72,4 +75,10 @@ func ReadCsv(filename string) ([][]string, error) {
 	}
 
 	return lines, nil
+}
+
+func exit(msg string, err error) {
+	log.Fatal(err)
+	fmt.Println(msg)
+	os.Exit(1)
 }
